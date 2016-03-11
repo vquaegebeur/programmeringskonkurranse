@@ -7,8 +7,6 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -21,51 +19,39 @@ public class Programmeringskonkurranse {
     // A cache to store the factors of each number... yes, will be big at the end
     private static final SortedMap<Integer, SortedSet<Integer>> FACTORS_CACHE = new TreeMap<>();
 
-    // A cache for the results of f(n) found so far
-    private static final SortedMap<Integer, Integer> CURRENT_RESULTS = new TreeMap<>();
-
     // A cache for the prime numbers
     private static final SortedSet<Integer> CURRENT_PRIMES = new TreeSet<>();
 
     public static void main(String[] args) throws Exception {
 
+        // A cache for the results of f(n) found so far
+        final SortedMap<Integer, Integer> currentResults = new TreeMap<>();
+
         // And the values we 're looking for!
         final List<Integer> values = new ArrayList<>();
-
-        ExecutorService executorService = Executors.newFixedThreadPool(3);
 
         values.add(1); // let's not forget it!
         System.out.println("f(1) = 1");
 
         for (int current = 2; current < 1_000_000; current++) {
 
-            int value = current;
+            SortedMap<Integer, Integer> primeFactors = primeFactors(current);
+            if (primeFactors.size() == 1 && primeFactors.firstKey() == current) {
+                // If it's prime, f(n) = 1, as the only sequence is [0 n]
+                CURRENT_PRIMES.add(current);
+                currentResults.put(current, 1);
+            } else {
+                // All the factors
+                SortedSet<Integer> factors = factors(current, primeFactors);
+                // Calculate the number of sequences, given the current primes and current results as cache
+                int numberOfSequences = numberOfSequences(current, factors, CURRENT_PRIMES, currentResults);
+                currentResults.put(current, numberOfSequences);
+                if (current == numberOfSequences) {
+                    System.out.println(String.format("f(%s) = %s", current, numberOfSequences));
+                    values.add(current);
+                }
+            }
 
-            executorService.submit(
-                    () -> {
-                        SortedMap<Integer, Integer> primeFactors = primeFactors(value);
-                        if (primeFactors.size() == 1 && primeFactors.firstKey() == value) {
-                            // If it's prime, f(n) = 1, as the only sequence is [0 n]
-                            CURRENT_PRIMES.add(value);
-                            CURRENT_RESULTS.put(value, 1);
-                        } else {
-                            // All the factors
-                            SortedSet<Integer> factors = factors(value, primeFactors);
-                            // Calculate the number of sequences, given the current primes and current results as cache
-                            int numberOfSequences = numberOfSequences(value, factors, CURRENT_PRIMES, CURRENT_RESULTS);
-                            if (value == numberOfSequences) {
-                                System.out.println(String.format("f(%s) = %s", value, numberOfSequences));
-                                values.add(value);
-                            }
-                        }
-                    }
-            );
-
-        }
-
-        executorService.shutdown();
-        while (!executorService.isTerminated()) {
-            Thread.sleep(1000L);
         }
 
         System.out.println("Result");
