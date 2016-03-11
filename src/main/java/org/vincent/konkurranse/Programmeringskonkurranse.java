@@ -12,8 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
- * Let's give it a try!
- * A bit brute force, I must admit...
+ * Let's give it a try! A bit brute force, I must admit...
  *
  * @author Vincent Quaegebeur
  */
@@ -22,13 +21,13 @@ public class Programmeringskonkurranse {
     // A cache to store the factors of each number... yes, will be big at the end
     private static final SortedMap<Integer, SortedSet<Integer>> FACTORS_CACHE = new TreeMap<>();
 
+    // A cache for the results of f(n) found so far
+    private static final SortedMap<Integer, Integer> CURRENT_RESULTS = new TreeMap<>();
+
+    // A cache for the prime numbers
+    private static final SortedSet<Integer> CURRENT_PRIMES = new TreeSet<>();
+
     public static void main(String[] args) throws Exception {
-
-        // A cache for the results of f(n) found so far
-        final SortedMap<Integer, Integer> currentResults = new TreeMap<>();
-
-        // A cache for the prime numbers
-        final SortedSet<Integer> currentPrimes = new TreeSet<>();
 
         // And the values we 're looking for!
         final List<Integer> values = new ArrayList<>();
@@ -47,14 +46,13 @@ public class Programmeringskonkurranse {
                         SortedMap<Integer, Integer> primeFactors = primeFactors(value);
                         if (primeFactors.size() == 1 && primeFactors.firstKey() == value) {
                             // If it's prime, f(n) = 1, as the only sequence is [0 n]
-                            currentPrimes.add(value);
-                            currentResults.put(value, 1);
+                            CURRENT_PRIMES.add(value);
+                            CURRENT_RESULTS.put(value, 1);
                         } else {
                             // All the factors
                             SortedSet<Integer> factors = factors(value, primeFactors);
                             // Calculate the number of sequences, given the current primes and current results as cache
-                            int numberOfSequences = numberOfSequences(value, factors, currentPrimes, currentResults);
-                            currentResults.put(value, numberOfSequences);
+                            int numberOfSequences = numberOfSequences(value, factors, CURRENT_PRIMES, CURRENT_RESULTS);
                             if (value == numberOfSequences) {
                                 System.out.println(String.format("f(%s) = %s", value, numberOfSequences));
                                 values.add(value);
