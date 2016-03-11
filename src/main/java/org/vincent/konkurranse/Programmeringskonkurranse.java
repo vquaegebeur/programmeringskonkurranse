@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 /**
  * Let's give it a try!
+ * A bit brute force, I must admit...
  *
  * @author Vincent Quaegebeur
  */
